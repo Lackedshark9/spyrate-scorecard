@@ -2,147 +2,142 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Spyrate Scorecard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spyrate Games Scorecard</title>
   <style>
     body {
-      background: #101020;
-      color: white;
       font-family: Arial, sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 20px;
-    }
-    table {
-      border-collapse: collapse;
-      width: 700px;
-      margin-top: 20px;
-    }
-    th, td {
-      border: 1px solid #333;
-      padding: 8px 12px;
-      text-align: center;
-    }
-    th {
-      background-color: #1c1c3a;
-    }
-    input {
-      width: 60px;
-      text-align: center;
-      background: #282850;
+      margin: 40px;
+      background-color: #0b0b15;
       color: white;
-      border: 1px solid #444;
-      border-radius: 4px;
-    }
-    .total {
-      font-weight: bold;
-    }
-    h1 {
-      margin-top: 0;
+      text-align: center;
     }
 
-    /* === Total Bar === */
-    #totalContainer {
-      width: 700px;
-      height: 30px;
-      background: #2a2a40;
-      border-radius: 8px;
-      margin-top: 30px;
-      position: relative;
-      overflow: hidden;
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
     }
-    #totalBar {
+
+    th, td {
+      border: 1px solid #333;
+      padding: 10px;
+      text-align: center;
+    }
+
+    th {
+      background-color: #222;
+    }
+
+    input {
+      width: 80px;
+      padding: 5px;
+      background-color: #111;
+      border: 1px solid #444;
+      color: white;
+      text-align: center;
+    }
+
+    .progress-container {
+      width: 100%;
+      height: 30px;
+      background-color: #222;
+      border-radius: 15px;
+      overflow: hidden;
+      position: relative;
+      margin-top: 10px;
+    }
+
+    .progress-bar {
       height: 100%;
       width: 0%;
-      background: linear-gradient(90deg, #00ffae, #00c0ff);
-      border-radius: 8px;
-      transition: width 0.5s ease-in-out;
+      transition: width 0.3s;
     }
-    #totalText {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
+
+    .bar-labels {
       display: flex;
-      align-items: center;
-      justify-content: center;
+      justify-content: space-between;
+      margin-top: 5px;
+      font-size: 14px;
+    }
+
+    .center-label {
+      position: absolute;
+      width: 100%;
+      text-align: center;
+      top: 5px;
       font-weight: bold;
-      font-size: 1.1em;
     }
   </style>
 </head>
 <body>
-  <h1>Spyrate Scorecard</h1>
+
+  <h1>Spyrate Games Scorecard</h1>
   <table id="scoreTable">
-    <thead>
-      <tr>
-        <th>Category</th>
-        <th>Objective</th>
-        <th>Points</th>
-        <th>Times Completed</th>
-        <th>Total</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
+    <tr>
+      <th>Category</th>
+      <th>Objective</th>
+      <th>Points</th>
+      <th>Input</th>
+      <th>Total</th>
+    </tr>
+    <tr>
+      <td>Example</td>
+      <td>Sink a ship</td>
+      <td>50</td>
+      <td><input type="number" class="input-score" value="0"></td>
+      <td class="row-total">0</td>
+    </tr>
+    <tr>
+      <td>Example</td>
+      <td>Find treasure</td>
+      <td>30</td>
+      <td><input type="number" class="input-score" value="0"></td>
+      <td class="row-total">0</td>
+    </tr>
   </table>
 
-  <div id="totalContainer">
-    <div id="totalBar"></div>
-    <div id="totalText">0 / 200</div>
+  <h2>Total Score</h2>
+  <div class="progress-container">
+    <div class="progress-bar" id="progressBar"></div>
+    <div class="center-label" id="progressLabel">0 / 100</div>
+  </div>
+  <div class="bar-labels">
+    <span>0</span>
+    <span>200+</span>
   </div>
 
   <script>
-    const MAX_SCORE = 200; // adjust if your score goes higher
-
-    async function loadCSV() {
-      const response = await fetch('scorecard.csv');
-      const text = await response.text();
-
-      const rows = text.trim().split('\n').slice(1); // skip header
-      const tbody = document.querySelector('#scoreTable tbody');
-      tbody.innerHTML = '';
-
-      rows.forEach(row => {
-        const [category, objective, points] = row.split(',').map(x => x.trim());
-        const tr = document.createElement('tr');
-
-        tr.innerHTML = `
-          <td>${category}</td>
-          <td>${objective}</td>
-          <td>${points}</td>
-          <td><input type="number" min="0" value="0"></td>
-          <td class="total">0</td>
-        `;
-        tbody.appendChild(tr);
-      });
-
-      attachListeners();
-    }
-
-    function attachListeners() {
-      document.querySelectorAll('input').forEach(input => {
-        input.addEventListener('input', updateTotals);
-      });
-    }
+    const inputs = document.querySelectorAll('.input-score');
+    const totals = document.querySelectorAll('.row-total');
+    const progressBar = document.getElementById('progressBar');
+    const progressLabel = document.getElementById('progressLabel');
 
     function updateTotals() {
       let grandTotal = 0;
-
-      document.querySelectorAll('#scoreTable tbody tr').forEach(row => {
-        const points = parseInt(row.children[2].textContent) || 0;
-        const times = parseInt(row.querySelector('input').value) || 0;
-        const total = points * times;
-        row.querySelector('.total').textContent = total;
+      inputs.forEach((input, index) => {
+        const basePoints = parseInt(input.parentElement.previousElementSibling.textContent);
+        const total = basePoints * parseInt(input.value || 0);
+        totals[index].textContent = total;
         grandTotal += total;
       });
 
-      const percent = Math.min((grandTotal / MAX_SCORE) * 100, 100);
-      document.getElementById('totalBar').style.width = percent + '%';
-      document.getElementById('totalText').textContent = `${grandTotal} / ${MAX_SCORE}+`;
+      const progress = Math.min(grandTotal, 200);
+      const percentage = (progress / 200) * 100;
+      progressBar.style.width = percentage + '%';
+      progressLabel.textContent = `${grandTotal} / 100`;
+
+      if (grandTotal < 100) {
+        progressBar.style.backgroundColor = '#a020f0'; // purple
+      } else {
+        progressBar.style.backgroundColor = '#ffd700'; // gold
+      }
     }
 
-    loadCSV();
+    inputs.forEach(input => input.addEventListener('input', updateTotals));
+    updateTotals();
   </script>
+
 </body>
 </html>
+
