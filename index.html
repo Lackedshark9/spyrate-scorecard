@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Spyrate Scorecard</title>
+  <style>
+    body {
+      background: #101020;
+      color: white;
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+    table {
+      border-collapse: collapse;
+      width: 700px;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid #333;
+      padding: 8px 12px;
+      text-align: center;
+    }
+    th {
+      background-color: #1c1c3a;
+    }
+    input {
+      width: 60px;
+      text-align: center;
+      background: #282850;
+      color: white;
+      border: 1px solid #444;
+      border-radius: 4px;
+    }
+    .total {
+      font-weight: bold;
+    }
+    h1 {
+      margin-top: 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>Spyrate Scorecard</h1>
+  <table id="scoreTable">
+    <thead>
+      <tr>
+        <th>Category</th>
+        <th>Objective</th>
+        <th>Points</th>
+        <th>Times Completed</th>
+        <th>Total</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <h2>Total Points: <span id="grandTotal">0</span></h2>
+
+  <script>
+    async function loadCSV() {
+      const response = await fetch('scorecard.csv');
+      const text = await response.text();
+
+      const rows = text.trim().split('\n').slice(1); // skip header
+      const tbody = document.querySelector('#scoreTable tbody');
+      tbody.innerHTML = '';
+
+      rows.forEach(row => {
+        const [category, objective, points] = row.split(',').map(x => x.trim());
+        const tr = document.createElement('tr');
+
+        tr.innerHTML = `
+          <td>${category}</td>
+          <td>${objective}</td>
+          <td>${points}</td>
+          <td><input type="number" min="0" value="0"></td>
+          <td class="total">0</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      attachListeners();
+    }
+
+    function attachListeners() {
+      document.querySelectorAll('input').forEach(input => {
+        input.addEventListener('input', updateTotals);
+      });
+    }
+
+    function updateTotals() {
+      let grandTotal = 0;
+
+      document.querySelectorAll('#scoreTable tbody tr').forEach(row => {
+        const points = parseInt(row.children[2].textContent) || 0;
+        const times = parseInt(row.querySelector('input').value) || 0;
+        const total = points * times;
+        row.querySelector('.total').textContent = total;
+        grandTotal += total;
+      });
+
+      document.getElementById('grandTotal').textContent = grandTotal;
+    }
+
+    loadCSV();
+  </script>
+</body>
+</html>
