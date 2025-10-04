@@ -40,6 +40,36 @@
     h1 {
       margin-top: 0;
     }
+
+    /* === Total Bar === */
+    #totalContainer {
+      width: 700px;
+      height: 30px;
+      background: #2a2a40;
+      border-radius: 8px;
+      margin-top: 30px;
+      position: relative;
+      overflow: hidden;
+    }
+    #totalBar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #00ffae, #00c0ff);
+      border-radius: 8px;
+      transition: width 0.5s ease-in-out;
+    }
+    #totalText {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 1.1em;
+    }
   </style>
 </head>
 <body>
@@ -57,9 +87,14 @@
     <tbody></tbody>
   </table>
 
-  <h2>Total Points: <span id="grandTotal">0</span></h2>
+  <div id="totalContainer">
+    <div id="totalBar"></div>
+    <div id="totalText">0 / 200</div>
+  </div>
 
   <script>
+    const MAX_SCORE = 200; // adjust if your score goes higher
+
     async function loadCSV() {
       const response = await fetch('scorecard.csv');
       const text = await response.text();
@@ -102,7 +137,9 @@
         grandTotal += total;
       });
 
-      document.getElementById('grandTotal').textContent = grandTotal;
+      const percent = Math.min((grandTotal / MAX_SCORE) * 100, 100);
+      document.getElementById('totalBar').style.width = percent + '%';
+      document.getElementById('totalText').textContent = `${grandTotal} / ${MAX_SCORE}+`;
     }
 
     loadCSV();
